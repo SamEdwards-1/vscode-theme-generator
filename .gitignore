@@ -3,3 +3,5 @@ dist
 *.local
 *.tsbuildinfo
 docs
+.claude
+.vscode
