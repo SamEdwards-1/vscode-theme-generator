@@ -1,0 +1,40 @@
+{
+  "name": "theme-generator",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Build VS Code color themes from a linked palette: drag one color and the colors linked to it follow in OKLCH, keeping their contrast and hue relationships.",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/SamEdwards-1/vscode-theme-generator.git"
+  },
+  "homepage": "https://github.com/SamEdwards-1/vscode-theme-generator#readme",
+  "bugs": {
+    "url": "https://github.com/SamEdwards-1/vscode-theme-generator/issues"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "vite --open",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --open",
+    "test": "vitest run",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "culori": "^4.0.2",
+    "fflate": "^0.8.3",
+    "mobx": "^7.0.5",
+    "mobx-react-lite": "^5.1.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/culori": "^4.0.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  }
+}
