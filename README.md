@@ -21,6 +21,13 @@ Other scripts:
 | `npm run build` | Type-check and build static files into `dist/` |
 | `npm run preview` | Serve the production build locally |
 
+## Deploy to Netlify
+
+The app is fully static, and [`netlify.toml`](netlify.toml) holds the deploy settings: tests then `npm run build` on Node 22, publishing `dist/`, with long-lived caching for hashed assets and basic security headers. No environment variables are needed.
+
+- **From Git**: in Netlify, *Add new site → Import an existing project*, pick this repo, and keep the detected settings.
+- **From the CLI**: `npx netlify-cli deploy --build` for a draft URL, then add `--prod` to publish.
+
 ## Using it
 
 - **Palette tab**: drag dots on the hue/chroma wheel or the lightness rail, or use the sliders. Colors in the same link group (chain icon) move together. *Boundary behavior* decides what happens when a follower hits 0 % or 100 %: **Clamp**, **Compress**, or **Rigid**. **Contrast guard** stops a drag before any passing text color drops below 4.5:1 (or the threshold you pick).
