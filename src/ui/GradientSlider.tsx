@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { clamp } from "../color/color";
 import { useWindowDrag } from "./useWindowDrag";
+import { ScrubNumber } from "./ScrubNumber";
 
 interface Props {
   label: string;
@@ -12,6 +13,7 @@ interface Props {
   /** CSS background for the track. */
   track?: string;
   format: (v: number) => string;
+  parse?: (text: string) => number;
   onStart: () => void;
   onChange: (v: number) => void;
   onEnd: () => void;
@@ -53,7 +55,10 @@ export function GradientSlider(p: Props) {
     <div className="slider">
       <div className="slider-head">
         <span>{p.label}</span>
-        <span className="slider-value">{p.format(p.value)}</span>
+        <ScrubNumber {...p} parse={p.parse ?? ((text) => {
+          const number = Number.parseFloat(text);
+          return p.format(p.value).includes("%") ? number / 100 : number;
+        })} />
       </div>
       <div
         ref={trackRef}

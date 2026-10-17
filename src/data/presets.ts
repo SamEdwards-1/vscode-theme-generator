@@ -9,8 +9,12 @@ export interface LinkGroup {
 }
 
 export const LINK_GROUPS: LinkGroup[] = [
-  { id: "neutral", label: "Neutrals", tint: "#8b9bb4" },
+  { id: "surface", label: "Surfaces", tint: "#8b9bb4" },
+  { id: "text", label: "Text", tint: "#c6cbd4" },
   { id: "accent", label: "Accents", tint: "#e0a040" },
+  { id: "syntax", label: "Syntax", tint: "#b69ae8" },
+  { id: "status", label: "Status", tint: "#e07878" },
+  { id: "neutral", label: "Neutrals (legacy)", tint: "#8b9bb4" },
   { id: "extra", label: "Group 3", tint: "#4fc1a0" },
 ];
 
@@ -57,7 +61,8 @@ export function presetPalette(type: "dark" | "light"): PaletteColor[] {
   return (type === "dark" ? DARK : LIGHT).map(([id, name, hex, group]) => ({
     id,
     name,
-    group,
+    group: id.startsWith("fg") ? "text" : group === "neutral" ? "surface" : id === "accent" ? "accent" : id === "red" ? "status" : "syntax",
     ...hexToLch(hex)!,
+    original: hexToLch(hex)!,
   }));
 }

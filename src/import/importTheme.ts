@@ -12,6 +12,7 @@ import type {
   ThemeType,
 } from "../stores/types";
 import { matchToken, splitScopes, type ResolvedRule } from "../theme/tokens";
+import { roleGroups } from "../theme/groups";
 
 export interface ImportOptions {
   /**
@@ -265,8 +266,10 @@ export function importVSCodeTheme(json: unknown, options: ImportOptions, fallbac
 
   const name = typeof theme.name === "string" && theme.name.trim() ? theme.name.trim() : fallbackName;
 
+  const doc: ThemeDocument = { version: 1, name, type, palette, workbench, syntax, extraTokens };
+  doc.palette = roleGroups(doc);
   return {
-    doc: { version: 1, name, type, palette, workbench, syntax, extraTokens },
+    doc,
     stats: {
       uniqueColors: unique.length,
       paletteSize: palette.length,

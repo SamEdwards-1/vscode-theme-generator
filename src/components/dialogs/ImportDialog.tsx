@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { lchToHex } from "../../color/color";
 import { importVSCodeTheme, type ImportResult } from "../../import/importTheme";
 import { parseJsonc } from "../../import/jsonc";
+import { parseProject } from "../../import/project";
 import { store } from "../../stores/ThemeStore";
 import type { ThemeDocument } from "../../stores/types";
 import { ui } from "../../stores/UiStore";
@@ -31,7 +32,7 @@ export const ImportDialog = observer(function ImportDialog({ onClose }: { onClos
     if (!text.trim()) return { kind: "empty" };
     try {
       const json = parseJsonc(text);
-      if (isProject(json)) return { kind: "project", doc: json };
+      if (isProject(json)) return { kind: "project", doc: parseProject(json) };
       const fallback = fileName?.replace(/(-color-theme)?\.jsonc?$/i, "") || "Imported theme";
       return { kind: "theme", result: importVSCodeTheme(json, { tolerance, keepTokenRules }, fallback) };
     } catch (e) {
@@ -100,6 +101,7 @@ export const ImportDialog = observer(function ImportDialog({ onClose }: { onClos
       </div>
       <textarea
         className="import-text"
+        aria-label="Theme or project JSON"
         placeholder={'{\n  "name": "My Theme",\n  "colors": { … },\n  "tokenColors": [ … ]\n}'}
         value={text}
         spellCheck={false}

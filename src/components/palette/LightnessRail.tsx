@@ -4,7 +4,6 @@ import { clamp } from "../../color/color";
 import { store } from "../../stores/ThemeStore";
 import { useWindowDrag } from "../../ui/useWindowDrag";
 
-const HEIGHT = 248;
 const PAD = 10;
 const WIDTH = 54;
 const LANES = 3;
@@ -37,10 +36,16 @@ export const LightnessRail = observer(function LightnessRail() {
   );
 
   return (
-    <div className="rail" ref={railRef} style={{ height: HEIGHT, width: WIDTH }} title="Lightness (OKLCH L)">
+    <div className="rail" ref={railRef} style={{ width: WIDTH }} title="Lightness (OKLCH L)"
+      onPointerDown={(e) => {
+        if (!store.selectedId) return;
+        dragId.current = store.selectedId;
+        drag(e);
+      }}>
       <div className="rail-track" style={{ top: PAD, bottom: PAD }} />
+      <div className="rail-points" style={{ top: PAD, bottom: PAD }}>
       {store.palette.map((c) => {
-        const top = PAD + (1 - c.l) * (HEIGHT - PAD * 2);
+        const top = `${(1 - c.l) * 100}%`;
         const left = 10 + lane.get(c.id)! * 14;
         const isAnchor = c.id === anchorId;
         return (
@@ -55,12 +60,14 @@ export const LightnessRail = observer(function LightnessRail() {
             style={{ top, left, background: store.hexById.get(c.id) }}
             title={`${c.name} · L ${(c.l * 100).toFixed(0)}%`}
             onPointerDown={(e) => {
+              e.stopPropagation();
               dragId.current = c.id;
               drag(e);
             }}
           />
         );
       })}
+      </div>
     </div>
   );
 });

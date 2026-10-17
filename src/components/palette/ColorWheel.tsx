@@ -1,9 +1,10 @@
 import { observer } from "mobx-react-lite";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { wrapHue } from "../../color/color";
 import { LINK_GROUPS } from "../../data/presets";
 import { store } from "../../stores/ThemeStore";
 import { useWindowDrag } from "../../ui/useWindowDrag";
+import { wheelLinks } from "./wheelLinks";
 
 const SIZE = 248;
 const PAD = 14;
@@ -32,6 +33,7 @@ const conic = `conic-gradient(from 90deg, ${Array.from({ length: 25 }, (_, i) =>
 export const ColorWheel = observer(function ColorWheel() {
   const svgRef = useRef<SVGSVGElement>(null);
   const dragId = useRef<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
 
   const pointToLch = (e: PointerEvent) => {
     const rect = svgRef.current!.getBoundingClientRect();
@@ -69,13 +71,14 @@ export const ColorWheel = observer(function ColorWheel() {
   );
 
   return (
-    <div className="wheel" style={{ width: SIZE, height: SIZE }}>
-      <div className="wheel-bg" style={{ background: conic, inset: PAD }} />
+    <div className="wheel">
+      <div className="wheel-bg" style={{ background: conic, inset: `${PAD / SIZE * 100}%` }} />
       <svg
         ref={svgRef}
         viewBox={`0 0 ${SIZE} ${SIZE}`}
-        width={SIZE}
-        height={SIZE}
+        width="100%"
+        height="100%"
+        onPointerLeave={() => setHovered(null)}
         onPointerDown={(e) => {
           // Dragging empty wheel space moves the selected color.
           if (!store.selectedId) return;
@@ -91,23 +94,15 @@ export const ColorWheel = observer(function ColorWheel() {
           return <line key={h} x1={CX} y1={CY} x2={p.x} y2={p.y} className="wheel-ring" />;
         })}
 
-        {anchorPos &&
-          store.palette
-            .filter((c) => followers.has(c.id))
-            .map((c) => {
-              const p = polar(c.c, c.h);
-              return (
-                <line
-                  key={c.id}
-                  x1={anchorPos.x}
-                  y1={anchorPos.y}
-                  x2={p.x}
-                  y2={p.y}
-                  stroke={tintOf(c.group)}
-                  className="wheel-link"
-                />
-              );
-            })}
+        {wheelLinks(store.palette, anchorId, store.crossGroup).map(({ from, to, active }) => {
+          const a = polar(from.c, from.h);
+          const b = polar(to.c, to.h);
+          return <line key={`${from.id}:${to.id}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+            stroke={tintOf(to.group)} className="wheel-link" data-active={active || undefined}
+            data-from={from.id} data-to={to.id}>
+            <title>{`${from.name} ↔ ${to.name}: linked`}</title>
+          </line>;
+        })}
 
         {ordered.map((c) => {
           const p = polar(c.c, c.h);
@@ -117,6 +112,7 @@ export const ColorWheel = observer(function ColorWheel() {
             <g
               key={c.id}
               className="wheel-dot"
+              onPointerEnter={() => setHovered(c.id)}
               onPointerDown={(e) => {
                 e.stopPropagation();
                 dragId.current = c.id;
@@ -153,6 +149,8 @@ export const ColorWheel = observer(function ColorWheel() {
           </text>
         )}
       </svg>
+      {hovered && <div className="wheel-hover">{store.palette.find((c) => c.id === hovered)?.name}
+        <small>{store.colorUses(hovered).join(" · ") || "Not assigned yet"}</small></div>}
     </div>
   );
 });

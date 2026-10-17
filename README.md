@@ -18,6 +18,7 @@ Other scripts:
 | Command | What it does |
 | --- | --- |
 | `npm test` | Unit tests (color engine, store, importer, .vsix packaging) |
+| `npm run test:browser -- http://127.0.0.1:5184/` | Browser regressions with gstack and a running dev server |
 | `npm run build` | Type-check and build static files into `dist/` |
 | `npm run preview` | Serve the production build locally |
 
@@ -30,11 +31,17 @@ The app is fully static, and [`netlify.toml`](netlify.toml) holds the deploy set
 
 ## Using it
 
-- **Palette tab**: drag dots on the hue/chroma wheel or the lightness rail, or use the sliders. Colors in the same link group (chain icon) move together. *Boundary behavior* decides what happens when a follower hits 0 % or 100 %: **Clamp**, **Compress**, or **Rigid**. **Contrast guard** stops a drag before any passing text color drops below 4.5:1 (or the threshold you pick).
+- **Palette tab**: drag dots on the hue/chroma wheel or the lightness rail, or use the sliders. Click a swatch to open the OKLCH picker: **L × C** edits lightness/chroma at a fixed hue; **H × C** edits hue/chroma at a fixed lightness. Hatching marks colors outside sRGB. The picker includes hex entry, a before/after sample (click the original to restore the opening palette), and a screen eyedropper in supported Chromium browsers. Click a numeric readout to type, or drag it up/down to adjust; each drag is one Undo step.
+- **Links and reset**: the chain button unlinks a color and relinks it to its previous group. Choose its group below the palette. **Reset** restores just that color to its original value. Surfaces, text, accent, syntax and status start in separate groups; **Group by role** regroups older or imported themes, leaving black, white and translucent-only overlays unlinked. Existing projects retain their groups until you regroup them. *Boundary behavior* decides what happens when a follower hits 0 % or 100 %: **Clamp**, **Compress**, or **Rigid**. **Contrast guard** stops a drag before any passing text color drops below 4.5:1 (or the threshold you pick).
 - **Colors / Syntax tabs**: assign each VS Code key or token group to a palette color, with an optional *lightness offset* (a derived color such as "Background +4 %") and opacity. Click any part of the preview to jump to its colors.
-- **Import**: load an existing `*-color-theme.json` (comments and trailing commas are fine). Similar colors are merged into one palette entry plus lightness offsets. Set *Merge similar colors* to *Off* for an exact copy.
+- **Pick colors from preview**: enable the checkbox above the preview, then click text, an edge or a fill to select its palette color. The inspection card lets you switch between the text, border and fill tokens, including tokens that happen to share the same color. Literal colors and VS Code defaults are identified in the card. Drag the divider between the editor and preview to resize the pane; the wheel stays visible while the editor scrolls.
+- **Import**: start from any existing `*-color-theme.json` using **Choose file**, drag-and-drop or pasted JSON (comments and trailing commas are fine). Its name, dark/light type, UI colors and syntax rules become the editable draft. Similar colors are merged into one palette entry plus lightness offsets. Set *Merge similar colors* to *Off* for an exact copy. Editable project JSON is also accepted and validated before replacing the draft. Undo restores the previous theme.
 - **Export**: download an installable `.vsix`, then in VS Code run *Extensions: Install from VSIX…* (or `code --install-extension <file>.vsix`) and pick the theme under *Preferences: Color Theme*. You can also download just the theme `.json`.
 - **Save project** keeps the editable palette, links and assignments. Re-open it with **Import**. Work is also auto-saved in the browser.
+
+## Social preview
+
+The public app includes a 1200 × 630 Open Graph image for link sharing, including LinkedIn. The image and its screenshot source are maintained with the [social preview artwork instructions](scripts/README.md).
 
 ## Project layout
 

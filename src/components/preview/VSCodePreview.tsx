@@ -12,6 +12,7 @@ import {
   SearchIcon,
 } from "../../ui/icons";
 import { tokenizeLine, type TokenKind } from "./tokenize";
+import { previewVar } from "./inspect";
 
 const SAMPLE = `// Fetch a user profile, retrying and caching the result
 import { cache } from "./cache.js";
@@ -83,8 +84,17 @@ function Region(p: { group: string; style?: CSSProperties; className?: string; c
 export const VSCodePreview = observer(function VSCodePreview() {
   const view = store.view;
   // Unset keys fall back to VS Code's built-in defaults, as they would in VS Code.
-  const c = (key: string, fallback = "transparent") => view.color(key) ?? fallback;
-  const syn = store.syntaxColors;
+  const variables: Record<string, string> = {};
+  const c = (key: string, fallback = "transparent") => {
+    const { variable, value } = previewVar(key);
+    variables[variable] = view.color(key) ?? fallback;
+    return value;
+  };
+  const syn = Object.fromEntries(Object.entries(store.syntaxColors).map(([key, look]) => {
+    const { variable, value } = previewVar(`syntax:${key}`);
+    variables[variable] = look.color;
+    return [key, { ...look, color: value }];
+  })) as typeof store.syntaxColors;
 
   const tokenStyle = (kind: TokenKind): CSSProperties => {
     if (kind === "plain") return {};
@@ -110,12 +120,13 @@ export const VSCodePreview = observer(function VSCodePreview() {
 
   const border = (key: string) => {
     const v = view.color(key);
-    return v ? `1px solid ${v}` : "none";
+    return v ? `1px solid ${c(key)}` : "none";
   };
 
   return (
     <div
       className="pv"
+      ref={(node) => { if (node) for (const [key, value] of Object.entries(variables)) node.style.setProperty(key, value); }}
       style={{ background: c("editor.background"), color: c("foreground", "#ccc"), boxShadow: `0 12px 40px ${c("widget.shadow", "#0008")}` }}
     >
       {/* Title bar */}

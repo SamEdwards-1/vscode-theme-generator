@@ -108,4 +108,21 @@ export class ThemeView {
     const g = SYNTAX_GROUPS.find((x) => x.id === groupId);
     return g ? this.tokenFor(g.probe) : { color: MISSING, fontStyle: [] };
   }
+
+  /** Palette assignment behind the color actually shown for a syntax group. */
+  tokenAssignment(groupId: string): ColorAssignment | null {
+    const group = SYNTAX_GROUPS.find((g) => g.id === groupId);
+    if (!group) return null;
+    // Resolve rule identities with the same matcher as the rendered colors.
+    // Comparing hex values would confuse distinct assignments with equal colors.
+    const winner = matchToken(this.rules.map((rule, index) => ({
+      ...rule,
+      color: rule.color ? String(index) : null,
+    })), group.probe).color;
+    if (winner === undefined) return this.inputs.workbench["editor.foreground"] ?? null;
+    const index = Number(winner);
+    return index < SYNTAX_GROUPS.length
+      ? this.inputs.syntax[SYNTAX_GROUPS[index].id] ?? null
+      : this.inputs.extraTokens?.[index - SYNTAX_GROUPS.length]?.color ?? null;
+  }
 }
