@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Theme Generator social preview artwork</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+      body {
+        color: #f0f2fa;
+        background: #10121b;
+        font-family: "Segoe UI", system-ui, sans-serif;
+      }
+      .artwork {
+        position: relative;
+        isolation: isolate;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background:
+          radial-gradient(ellipse at 86% 15%, #5555b72b, transparent 59%),
+          radial-gradient(ellipse at 20% 105%, #267e8022, transparent 50%),
+          #10121b;
+      }
+      .brand { position: absolute; top: 47px; left: 55px; display: flex; align-items: center; gap: 12px; }
+      .brand-mark { display: grid; grid-template-columns: repeat(2, 10px); gap: 3px; transform: rotate(-9deg); }
+      .brand-mark span { width: 10px; height: 10px; border-radius: 3px; background: #8b93ec; }
+      .brand-mark span:nth-child(2) { background: #c391da; }
+      .brand-mark span:nth-child(3) { background: #58b4bb; }
+      .brand-mark span:nth-child(4) { background: #c4ca83; }
+      .brand-name { font-size: 15px; font-weight: 650; letter-spacing: -.2px; }
+      .platform { position: absolute; top: 104px; left: 55px; color: #9fa8c3; font-size: 11px; font-weight: 650; letter-spacing: 2.5px; }
+      h1 { position: absolute; top: 156px; left: 52px; margin: 0; font-size: 54px; line-height: 1.12; letter-spacing: -2.5px; font-weight: 700; }
+      h1 span { color: #a7b2ff; }
+      .description { position: absolute; top: 321px; left: 55px; margin: 0; color: #aab3c9; font-size: 19px; line-height: 1.6; letter-spacing: -.3px; }
+      .features { position: absolute; top: 446px; left: 55px; display: flex; gap: 7px; }
+      .features span { padding: 7px 10px 8px; border: 1px solid #59627a55; border-radius: 6px; font-size: 11px; color: #c3cce0; background: #ffffff04; }
+      .address { position: absolute; bottom: 49px; left: 55px; color: #747f9c; font-size: 13px; letter-spacing: .15px; }
+      .address b { color: #a9b7d5; font-weight: 500; }
+      .window {
+        position: absolute;
+        left: 457px;
+        top: 105px;
+        width: 803px;
+        border: 1px solid #7283b13d;
+        border-radius: 13px;
+        overflow: hidden;
+        box-shadow: 0 35px 80px #0008, 0 0 90px #737aeb15;
+        transform: rotate(-2deg);
+        transform-origin: 50% 50%;
+        background: #22262d;
+      }
+      .window img { display: block; width: 100%; height: auto; }
+      .line { position: absolute; left: 55px; bottom: 94px; width: 316px; height: 1px; background: linear-gradient(90deg, #64718e5c, transparent); }
+    </style>
+  </head>
+  <body>
+    <main class="artwork" aria-label="Theme Generator for VS Code social preview">
+      <div class="brand"><div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><span class="brand-name">Theme Generator</span></div>
+      <div class="platform">FOR VISUAL STUDIO CODE</div>
+      <h1>One palette.<br /><span>A whole theme.</span></h1>
+      <p class="description">Design your editor, color by color.<br />Keep the whole palette connected.</p>
+      <div class="features"><span>Linked colors</span><span>Live preview</span><span>VSIX export</span></div>
+      <div class="line" aria-hidden="true"></div>
+      <div class="address"><b>themepunch</b>.netlify.app</div>
+      <div class="window"><img src="./assets/theme-builder.png" width="1440" height="900" alt="The actual theme builder, with linked palette colors and a live VS Code preview" /></div>
+    </main>
+  </body>
+</html>
