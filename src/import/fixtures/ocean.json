@@ -1,0 +1,13 @@
+{
+  "name": "Ocean",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#102030",
+    "editor.foreground": "#dceeff",
+    "sideBar.background": "#152535",
+    "focusBorder": "#44bbcc"
+  },
+  "tokenColors": [
+    { "scope": "string", "settings": { "foreground": "#88cc99" } }
+  ]
+}

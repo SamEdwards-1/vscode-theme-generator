@@ -8,6 +8,8 @@ export class UiStore {
   editingKey: string | null = null;
   /** Group scrolled into view after a click in the preview. */
   focusedGroup: string | null = null;
+  sidebarWidth = 400;
+  pickColors = false;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -15,6 +17,14 @@ export class UiStore {
 
   setTab(tab: SidebarTab) {
     this.tab = tab;
+  }
+
+  setSidebarWidth(width: number) {
+    this.sidebarWidth = Math.max(350, Math.min(720, width));
+  }
+
+  setPickColors(pick: boolean) {
+    this.pickColors = pick;
   }
 
   toggleGroup(id: string) {

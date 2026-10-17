@@ -17,6 +17,7 @@ import {
 import { ColorWheel } from "./ColorWheel";
 import { ContrastChecks } from "./ContrastChecks";
 import { LightnessRail } from "./LightnessRail";
+import { PickerSwatch } from "./PickerSwatch";
 
 const MODES: { id: BoundaryMode; label: string; hint: string }[] = [
   { id: "clamp", label: "Clamp", hint: "Followers stop at 0 / max; offsets break at the edge." },
@@ -30,13 +31,13 @@ const steps = (n: number) => Array.from({ length: n + 1 }, (_, i) => i / n);
 export const PalettePanel = observer(function PalettePanel() {
   return (
     <div className="panel-scroll">
-      <section className="section">
+      <section className="section palette-tools">
         <div className="wheel-row">
           <ColorWheel />
           <LightnessRail />
         </div>
-        <LinkSettings />
       </section>
+      <section className="section"><LinkSettings /></section>
       <SelectedEditor />
       <PaletteList />
       <GlobalControls />
@@ -125,7 +126,7 @@ const SelectedEditor = observer(function SelectedEditor() {
         </span>
       </div>
       <div className="anchor-head">
-        <div className="anchor-swatch" style={{ background: hex }} />
+        <PickerSwatch id={id} className="anchor-swatch" />
         <HexInput value={hex} onCommit={(v) => store.setHex(id, v)} />
         {store.outOfGamut.has(id) && (
           <span className="gamut-warn" title="Outside sRGB; chroma is reduced for display and export.">
@@ -191,6 +192,7 @@ const PaletteList = observer(function PaletteList() {
           return (
             <div
               key={c.id}
+              id={`palette-${c.id}`}
               className={
                 "swatch-row" +
                 (c.id === anchorId ? " anchor" : "") +
@@ -199,9 +201,9 @@ const PaletteList = observer(function PaletteList() {
               onClick={() => store.select(c.id)}
               style={followers.has(c.id) && group ? ({ "--link": group.tint } as React.CSSProperties) : undefined}
             >
-              <div className="swatch" style={{ background: hex }}>
+              <PickerSwatch id={c.id} className="swatch">
                 {limited.has(c.id) && <span className="limit-dot" title="Hit a boundary" />}
-              </div>
+              </PickerSwatch>
               <div className="swatch-text">
                 <input
                   className="name-input"
@@ -222,14 +224,18 @@ const PaletteList = observer(function PaletteList() {
               <button
                 className="chain"
                 style={{ color: group?.tint }}
-                title={group ? `Linked: ${group.label} (click to change)` : "Unlinked (click to link)"}
+                title={group ? `Unlink from ${group.label}` : `Relink to ${c.linkedGroup ?? "accent"}`}
+                aria-label={group ? `Unlink ${c.name}` : `Relink ${c.name}`}
+                aria-pressed={!!group}
                 onClick={(e) => {
                   e.stopPropagation();
-                  store.cycleColorGroup(c.id);
+                  store.toggleColorLink(c.id);
                 }}
               >
                 {group ? <LinkIcon /> : <UnlinkIcon />}
               </button>
+              <button className="icon-btn" title={`Reset ${c.name} to its original color`} aria-label={`Reset ${c.name}`}
+                onClick={(e) => { e.stopPropagation(); store.resetColor(c.id); }}><ResetIcon /></button>
               <button
                 className="icon-btn danger"
                 title="Remove (references keep their current hex)"
@@ -243,6 +249,16 @@ const PaletteList = observer(function PaletteList() {
             </div>
           );
         })}
+      </div>
+      <div className="row-between palette-group-controls">
+        <label className="label">Selected group <select aria-label="Selected color link group"
+          value={store.selected?.group ?? ""} onChange={(e) => store.selectedId && store.setColorGroup(store.selectedId, e.target.value || null)}>
+          <option value="">Unlinked</option>
+          {LINK_GROUPS.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
+          {store.selected?.group && !LINK_GROUPS.some((g) => g.id === store.selected!.group)
+            && <option value={store.selected.group}>{store.selected.group}</option>}
+        </select></label>
+        <button className="btn-ghost" onClick={store.groupByRole}>Group by role</button>
       </div>
       <div className="legend">
         {LINK_GROUPS.map((g) => (

@@ -12,6 +12,8 @@ import {
 } from "../engine/relational";
 import { furthestValid, guardFloors, guardViolations } from "../theme/guard";
 import { ThemeView } from "../theme/view";
+import { roleGroups } from "../theme/groups";
+import { parseProject } from "../import/project";
 import type {
   ColorAssignment,
   ExtensionMeta,
@@ -423,7 +425,45 @@ export class ThemeStore {
   setColorGroup(id: string, group: string | null) {
     this.checkpoint();
     const c = this.palette.find((p) => p.id === id);
-    if (c) c.group = group;
+    if (c) {
+      if (c.group) c.linkedGroup = c.group;
+      c.group = group;
+      if (group) c.linkedGroup = group;
+    }
+  }
+
+  toggleColorLink(id: string) {
+    const c = this.palette.find((p) => p.id === id);
+    if (c) this.setColorGroup(id, c.group ? null : c.linkedGroup ?? "accent");
+  }
+
+  resetColor(id: string) {
+    const c = this.palette.find((p) => p.id === id);
+    if (!c?.original) return;
+    this.checkpoint();
+    Object.assign(c, c.original);
+  }
+
+  restorePalette(colors: PaletteColor[]) {
+    this.checkpoint();
+    const saved = new Map(colors.map((c) => [c.id, c]));
+    this.palette = this.palette.map((c) => {
+      const was = saved.get(c.id);
+      return was ? { ...c, l: was.l, c: was.c, h: was.h } : c;
+    });
+  }
+
+  groupByRole() {
+    this.checkpoint();
+    this.palette = roleGroups(this.document);
+  }
+
+  colorUses(id: string): string[] {
+    return [
+      ...Object.entries(this.workbench).filter(([, a]) => a?.source === id).map(([key]) => key),
+      ...Object.entries(this.syntax).filter(([, a]) => a.source === id).map(([key]) => `syntax:${key}`),
+      ...this.extraTokens.filter((a) => a.color?.source === id).flatMap((a) => a.scope),
+    ];
   }
 
   /** Cycles a color through the link groups, then "unlinked". */
@@ -451,6 +491,7 @@ export class ThemeStore {
       c: base?.c ?? 0.12,
       h: wrapHue((base?.h ?? 0) + 30),
       group: null,
+      original: { l: base?.l ?? 0.6, c: base?.c ?? 0.12, h: wrapHue((base?.h ?? 0) + 30) },
     });
     this.selectedId = id;
   }
@@ -541,6 +582,7 @@ export class ThemeStore {
   }
 
   importDocument(doc: ThemeDocument) {
+    doc = parseProject(doc);
     this.checkpoint();
     this.applyDocument(doc);
     this.selectedId = this.palette.find((c) => c.id === "accent")?.id ?? this.palette[0]?.id ?? null;
@@ -549,7 +591,7 @@ export class ThemeStore {
   private applyDocument(doc: ThemeDocument) {
     this.name = doc.name;
     this.type = doc.type;
-    this.palette = doc.palette.map((c) => ({ ...c }));
+    this.palette = doc.palette.map((c) => ({ ...c, original: { ...(c.original ?? { l: c.l, c: c.c, h: c.h }) } }));
     // Merge so documents saved before new keys were added still get defaults.
     // (Imported themes set unknown-to-them keys to null explicitly.)
     this.workbench = { ...defaultWorkbench(doc.type), ...doc.workbench };
@@ -563,8 +605,7 @@ export class ThemeStore {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const doc = JSON.parse(raw) as ThemeDocument;
-        if (doc.version === 1 && Array.isArray(doc.palette)) this.applyDocument(doc);
+        this.applyDocument(parseProject(JSON.parse(raw)));
       }
       const settings = localStorage.getItem(SETTINGS_KEY);
       if (settings) {

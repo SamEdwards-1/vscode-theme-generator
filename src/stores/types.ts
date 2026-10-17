@@ -2,6 +2,9 @@ import type { RelationalColor } from "../engine/relational";
 
 export interface PaletteColor extends RelationalColor {
   name: string;
+  /** The group restored by the link toggle, and the color restored by Reset. */
+  linkedGroup?: string;
+  original?: { l: number; c: number; h: number };
 }
 
 /**

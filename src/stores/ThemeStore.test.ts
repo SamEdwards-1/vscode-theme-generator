@@ -33,6 +33,7 @@ describe("ThemeStore", () => {
   });
 
   it("moves linked colors with the anchor and leaves other groups alone", () => {
+    store.setColorGroup("red", "accent");
     const bg = store.hexById.get("bg");
     const red = store.palette.find((c) => c.id === "red")!.h;
     store.beginEdit("accent");
@@ -73,8 +74,8 @@ describe("ThemeStore", () => {
     const { contrastRatio } = colorLib;
     store.setGuard(true, 3);
     const before = store.syntaxColors.string.color;
-    store.beginEdit("accent");
-    store.updateAnchor({ l: 0.15 }); // would drag all accents nearly black
+    store.beginEdit("green");
+    store.updateAnchor({ l: 0.15 }); // would drag linked syntax colors nearly black
     expect(store.guardHolding.length).toBeGreaterThan(0);
     store.endEdit();
     expect(store.syntaxColors.string.color).not.toBe(before); // moved partway…
@@ -90,7 +91,8 @@ describe("ThemeStore", () => {
     const bg = store.view.color("editor.background")!;
     const red = store.syntaxColors.variable.color;
     expect(contrastRatio(red, bg)).toBeLessThan(4.5); // 4.4:1 in the default dark theme
-    store.beginEdit("accent");
+    store.setColorGroup("red", "syntax");
+    store.beginEdit("green");
     store.updateAnchor({ l: 0.15 });
     store.endEdit();
     // Strings (6.9:1) are guarded, so the move stops at 4.5:1 for them…
@@ -103,6 +105,84 @@ describe("ThemeStore", () => {
     store.setGuard(true, 4.5);
     store.setHex("accent", "#101010");
     expect(store.hexById.get("accent")).toBe("#101010");
+  });
+
+  it("keeps text, surfaces, syntax and status independent of the accent by default", () => {
+    const before = store.document.palette.filter((c) => c.id !== "accent");
+    store.setHex("accent", "#f28c28");
+    expect(store.document.palette.filter((c) => c.id !== "accent")).toEqual(before);
+    expect(store.palette.find((c) => c.id === "fg")!.group).not.toBe(store.palette.find((c) => c.id === "bg")!.group);
+  });
+
+  it("unlinks and relinks a color to the same group, across save and reload", () => {
+    store.setColorGroup("green", "extra");
+    store.toggleColorLink("green");
+    const draft = store.document;
+    expect(draft.palette.find((c) => c.id === "green")!.group).toBeNull();
+    store.importDocument(draft);
+    store.toggleColorLink("green");
+    expect(store.palette.find((c) => c.id === "green")!.group).toBe("extra");
+    store.undo();
+    expect(store.palette.find((c) => c.id === "green")!.group).toBeNull();
+  });
+
+  it("resets just one color to its original value, undoably", () => {
+    store.setGuard(false);
+    const original = store.hexById.get("green");
+    store.setHex("green", "#7755ff");
+    const follower = store.hexById.get("blue");
+    const changed = store.hexById.get("green");
+    store.resetColor("green");
+    expect(store.hexById.get("green")).toBe(original);
+    expect(store.hexById.get("blue")).toBe(follower);
+    store.undo();
+    expect(store.hexById.get("green")).toBe(changed);
+    store.redo();
+    expect(store.hexById.get("green")).toBe(original);
+  });
+
+  it("uses opening values as reset values for old projects", () => {
+    const doc = store.document;
+    for (const c of doc.palette) delete c.original;
+    doc.palette[0].l = 0.5;
+    store.importDocument(doc);
+    store.setHex("bg", "#111111");
+    store.resetColor("bg");
+    expect(store.palette[0].l).toBe(0.5);
+  });
+
+  it("restores the picker opening palette including followers in one undo step", () => {
+    store.setGuard(false);
+    const before = store.document.palette;
+    store.setHex("green", "#5577ee");
+    const changed = store.document.palette;
+    store.restorePalette(before);
+    expect(store.document.palette).toEqual(before);
+    store.undo();
+    expect(store.document.palette).toEqual(changed);
+  });
+
+  it("regroups old palettes by use, leaving black and white overlays unlinked", () => {
+    store.addColor();
+    const overlay = store.selectedId!;
+    store.setHex(overlay, "#000000");
+    store.setColorGroup(overlay, "neutral");
+    const before = store.document;
+    store.groupByRole();
+    expect(store.palette.find((c) => c.id === overlay)!.group).toBeNull();
+    expect(store.palette.find((c) => c.id === "bg")!.group).toBe("surface");
+    expect(store.palette.find((c) => c.id === "fg")!.group).toBe("text");
+    store.undo();
+    expect(store.document).toEqual(before);
+  });
+
+  it("rejects malformed imports before changing the draft or its undo history", () => {
+    const before = store.document;
+    const broken = store.document;
+    broken.palette[0].l = NaN;
+    expect(() => store.importDocument(broken)).toThrow("Invalid palette");
+    expect(store.document).toEqual(before);
+    expect(store.pastCount).toBe(0);
   });
 
   it("resolves derived colors with a lightness offset", () => {
